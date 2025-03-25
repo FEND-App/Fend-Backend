@@ -1,9 +1,9 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Annotated
-from src import models
-from src.models import User
-from src.database import SessionLocal, engine
+import models
+from models import User
+from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 
 app = FastAPI()
