@@ -15,5 +15,5 @@ class Person(Base):
     born_date = Column(DateTime, nullable=False)
     email = Column(String, unique=True, index=True, nullable=False)
     phone = Column(String, index=True, nullable=False)
-    government_id = Column(String, index=True, nullable=False)
+    government_issued_id = Column(String, index=True, nullable=False)
     id_user = Column(Integer, ForeignKey("users.id_user"))

@@ -28,4 +28,4 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @router.get("/")
 def get_persons(db: db_dependency):
     persons = db.query(Person).all()
-    return persons
+    return [{"person_name": person.first_name + ' ' + person.f_last_name} for person in persons]
