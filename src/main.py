@@ -4,12 +4,18 @@ from typing import List, Dict, Any, Optional, Annotated
 import models
 from models.users import User
 from routers import persons
+from routers import country
+from routers import city
+from routers import residential_area
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 
 app = FastAPI()
 
 app.include_router(persons.router, prefix="/persons")
+app.include_router(country.router, prefix="/country")
+app.include_router(city.router, prefix="/city")
+app.include_router(residential_area.router, prefix="/residential_area")
 
 models.Base.metadata.create_all(bind=engine)
 
