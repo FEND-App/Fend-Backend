@@ -1,6 +1,5 @@
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean
-from database import Base, engine
-from models.users import User
+from database import Base
 
 
 class Person(Base):
