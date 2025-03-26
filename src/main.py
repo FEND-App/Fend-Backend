@@ -2,13 +2,17 @@ from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Annotated
 import models
-from models import User
+from models.users import User
+from routers import persons
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 
 app = FastAPI()
 
+app.include_router(persons.router, prefix="/persons")
+
 models.Base.metadata.create_all(bind=engine)
+
 
 def get_db():
     db = SessionLocal()
@@ -17,11 +21,14 @@ def get_db():
     finally:
         db.close()
 
+
 db_dependency = Annotated[Session, Depends(get_db)]
+
 
 @app.get("/")
 def root():
-    return {"Hello" : "World"}
+    return {"Hello": "World"}
+
 
 @app.get("/users/")
 def get_users(db: db_dependency):
