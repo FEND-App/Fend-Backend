@@ -2,7 +2,7 @@ from pydantic import BaseModel, emailStr
 from typing import Optional
 from datetime import date, datetime
 
-class ResidentialManagementCrate(BaseModel):
+class ResidentialManagementCreate(BaseModel):
     residential: int
     first_name: str
     second_name: Optional[str] = None
