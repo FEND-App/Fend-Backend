@@ -1,4 +1,5 @@
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean
+from sqlalchemy.orm import relationship
 from database import Base
 
 
@@ -16,3 +17,7 @@ class Person(Base):
     phone = Column(String, index=True, nullable=False)
     government_issued_id = Column(String, index=True, nullable=False)
     id_user = Column(Integer, ForeignKey("users.id_user"))
+
+    # Relaciones
+    managements = relationship(
+        "ResidentialManagement", back_populates="person_details")
