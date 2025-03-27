@@ -26,6 +26,42 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
+@router.post('/residential_management/', response_model=models.residential_management.ResidentialManagement)
+def create__residential_management(data: ResidentialManagementCreate, db: db_dependency):
+    new_person = models.Person(
+        first_name=data.first_name,
+        second_name=data.second_name,
+        third_name=data.third_name,
+        f_last_name=data.f_last_name,
+        s_last_name=data.s_last_name,
+        born_date=data.born_date,
+        email=data.email,
+        phone=data.phone,
+        government_issued_id=data.government_issued_id
+    )
+
+    db.add(new_person)
+    db.commit()
+    db.refresh(new_person)
+
+    new_management = models.ResidentialManagement(
+        residential=data.residential,
+        person=new_person.id_person,
+        employee_star_date=data.employee_star_date,
+        employee_mobile_phone=data.employee_mobile_phone,
+        employee_email=data.employee_email,
+        role=data.role
+    )
+
+    db.add(new_management)
+    db.commit()
+    db.refresh(new_management)
+
+    return new_management
+    except (Exception) as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error al crear al nuevo administrador: {str(e)}")
+
 
 @router.get('/')
 def get_managements(db: db_dependency):
@@ -75,3 +111,47 @@ def get_managements(id_management: int, db: db_dependency):
     }
 
     return response
+
+
+@router.put('/residential_management/{id_management}', response_model=models.residential_management.ResidentialManagement)
+def update_management(id_management: int, data: ResidentialManagementUpdate, db: db_dependency):
+    try:
+        management = db.query(ResidentialManagement).filter(
+            ResidentialManagement.id_residential_management == id_management).first()
+
+        if not management:
+            raise HTTPException(status_code=404, detail="Management no existe")
+
+        person = db.query(models.Person).filter(
+            models.Person.id_person == management.person).first()
+
+        if not person:
+            raise HTTPException(status_code=404, detail="Persona no existe")
+
+        if data.email:
+            person.email = data.email
+        if data.phone:
+            person.phone = data.phone
+        if data.government_issued_id:
+            person.government_issued_id = data.government_issued_id
+
+        if data.employee_mobile_phone:
+            management.employee_mobile_phone = data.employee_mobile_phone
+        if data.employee_email:
+            management.employee_email = data.employee_email
+        if data.role:
+            management.role = data.role
+        if data.residential:
+            management.residential = data.residential
+        if data.is_active:
+            management.is_active = data.is_active
+
+        db.commit()
+        db.refresh(management)
+        db.refresh(person)
+
+        return {"message": "Management actualizado correctamente"}
+
+    except (Exception) as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Error al actualizar el management: {str(e)}")
