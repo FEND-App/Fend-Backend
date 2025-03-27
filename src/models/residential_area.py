@@ -1,4 +1,5 @@
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean
+from sqlalchemy.orm import relationship
 from database import Base
 
 
@@ -12,3 +13,7 @@ class ResidentialArea(Base):
     city_residential_area = Column(
         Integer, ForeignKey("city.id_city"), nullable=False)
     total_houses = Column(Integer, nullable=False)
+
+    # Relaciones
+    managements = relationship(
+        "ResidentialManagement", back_populates="residential_area")
