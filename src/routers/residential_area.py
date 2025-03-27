@@ -1,4 +1,4 @@
-from fastapi import FastAPI, APIRouter, Depends
+from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Annotated
 import models
@@ -30,8 +30,29 @@ db_dependency = Annotated[Session, Depends(get_db)]
 @router.get("/")
 def get_residential_areas(db: db_dependency):
     residential_areas = db.query(ResidentialArea).all()
-    return [{"id": residential_area.id_residential_area, "residential_area": residential_area.name_residential_area} for residential_area in residential_areas]
-
+    return [
+        {
+            "id": residential_area.id_residential_area, 
+            "residential_area": residential_area.name_residential_area,
+            "active": residential_area.is_active,
+            "city": residential_area.city_residential_area,
+            "total_houses": residential_area.total_houses
+        } for residential_area in residential_areas
+    ]
+    
+@router.get("/{id_residential_area}")
+def get_residential_area(id_residential_area: int, db: db_dependency):
+    residential_area = db.query(ResidentialArea).filter(ResidentialArea.id_residential_area == id_residential_area).first()
+    if not residential_area:
+        raise HTTPException(status_code=404, detail="Residential not found")
+    
+    return {
+        "id": residential_area.id_residential_area, 
+        "residential_area": residential_area.name_residential_area,
+        "active": residential_area.is_active,
+        "city": residential_area.city_residential_area,
+        "total_houses": residential_area.total_houses
+    }
 
 @router.post("/")
 def create_residential_area(residential_area: ResidentialAreaCreate, db: db_dependency):
@@ -66,3 +87,12 @@ def create_residential_area(residential_area: ResidentialAreaCreate, db: db_depe
     except (Exception) as e:
         db.rollback()
         return {"message": "Error", "error": str(e)}
+    
+@router.patch("/{id_residential_area}")
+def update_residential_area(id_residential_area: int, db: db_dependency):
+    residential_area = db.query(ResidentialArea).filter(ResidentialArea.id_residential_area == id_residential_area).first()
+    
+    if not residential_area:
+        raise HTTPException(status_code=404, detail="Residential not found")
+    
+    
