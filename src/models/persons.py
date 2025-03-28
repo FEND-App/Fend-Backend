@@ -21,3 +21,4 @@ class Person(Base):
     # Relaciones
     managements = relationship(
         "ResidentialManagement", back_populates="person_details")
+    info_user = relationship("User", back_populates="persons_info")

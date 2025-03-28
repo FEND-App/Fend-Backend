@@ -1,5 +1,6 @@
 from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean
 from database import Base
+from sqlalchemy.orm import relationship
 
 
 class User(Base):
@@ -9,5 +10,9 @@ class User(Base):
     username = Column(String, unique=True, index=True)
     password = Column(String)
     is_active = Column(Boolean, default=True)
-    creates_at = Column(DateTime)
+    created_at = Column(DateTime)
     updated_at = Column(DateTime)
+
+    # Relaciones
+    employees = relationship("Employee", back_populates="users_details")
+    persons_info = relationship("Person", back_populates="info_user", uselist=False)
