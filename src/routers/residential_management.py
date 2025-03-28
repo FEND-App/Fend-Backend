@@ -5,10 +5,16 @@ import models
 import models.city
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
+from models.persons import Person
 from models.residential_management import ResidentialManagement
-import models.residential_management
 from sqlalchemy.orm import joinedload
 from datetime import date, datetime
+
+from schemas.residential_management.residential_management import (
+    ResidentialManagementCreate,
+    ResidentialManagementUpdate,
+    ResidentialManagementResponse,
+)
 
 app = FastAPI()
 router = APIRouter()
@@ -26,9 +32,10 @@ def get_db():
 
 db_dependency = Annotated[Session, Depends(get_db)]
 
-@router.post('/residential_management/', response_model=models.residential_management.ResidentialManagement)
+
+@router.post('/residential_management/', response_model=ResidentialManagementResponse)
 def create__residential_management(data: ResidentialManagementCreate, db: db_dependency):
-    new_person = models.Person(
+    new_person = Person(
         first_name=data.first_name,
         second_name=data.second_name,
         third_name=data.third_name,
@@ -44,7 +51,7 @@ def create__residential_management(data: ResidentialManagementCreate, db: db_dep
     db.commit()
     db.refresh(new_person)
 
-    new_management = models.ResidentialManagement(
+    new_management = ResidentialManagement(
         residential=data.residential,
         person=new_person.id_person,
         employee_star_date=data.employee_star_date,
@@ -58,15 +65,11 @@ def create__residential_management(data: ResidentialManagementCreate, db: db_dep
     db.refresh(new_management)
 
     return new_management
-    except (Exception) as e:
-        db.rollback()
-        raise HTTPException(status_code=400, detail=f"Error al crear al nuevo administrador: {str(e)}")
 
 
 @router.get('/')
 def get_managements(db: db_dependency):
     try:
-        # managements = db.query(ResidentialManagement).filter(ResidentialManagement.is_active == True).all()
         managements = db.query(ResidentialManagement
                                ).options(
             joinedload(ResidentialManagement.residential_area),
@@ -113,7 +116,7 @@ def get_managements(id_management: int, db: db_dependency):
     return response
 
 
-@router.put('/residential_management/{id_management}', response_model=models.residential_management.ResidentialManagement)
+@router.put('/residential_management/{id_management}', response_model=ResidentialManagementResponse)
 def update_management(id_management: int, data: ResidentialManagementUpdate, db: db_dependency):
     try:
         management = db.query(ResidentialManagement).filter(
@@ -143,15 +146,15 @@ def update_management(id_management: int, data: ResidentialManagementUpdate, db:
             management.role = data.role
         if data.residential:
             management.residential = data.residential
-        if data.is_active:
+        if data.is_active is not None:
             management.is_active = data.is_active
 
         db.commit()
         db.refresh(management)
-        db.refresh(person)
 
-        return {"message": "Management actualizado correctamente"}
+        return management
 
     except (Exception) as e:
         db.rollback()
-        raise HTTPException(status_code=400, detail=f"Error al actualizar el management: {str(e)}")
+        raise HTTPException(
+            status_code=400, detail=f"Error al actualizar el management: {str(e)}")
