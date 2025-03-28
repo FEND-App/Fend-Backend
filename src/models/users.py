@@ -15,3 +15,4 @@ class User(Base):
 
     # Relaciones
     employees = relationship("Employee", back_populates="users_details")
+    persons_info = relationship("Person", back_populates="info_user", uselist=False)

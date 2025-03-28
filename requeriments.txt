@@ -3,3 +3,6 @@ pydantic
 typing
 sqlalchemy
 uvicorn
+python-multipart
+pydantic[email]
+asyncpg

@@ -36,22 +36,51 @@ db_dependency = Annotated[AsyncSession, Depends(get_async_db)]
 
 @router.get('/')
 async def get_employees(db: db_dependency):
-    query = select(Employee).options(joinedload(Employee.users_details))
-    result = await db.execute(query)  # Usa `await` para ejecutar la consulta
-    employees = result.scalars().all()
+    query = select(Employee).options(
+        joinedload(Employee.users_details).joinedload(User.persons_info)
+    )
+    result = await db.execute(query)
+    employees = result.unique().scalars().all()
 
     return [
         {
             "id": employee.id_employee,
-            # "name": f"{employee.person_details.first_name} {employee.person_details.f_last_name}",
+            "user": (
+                f"{employee.users_details.persons_info.first_name} {employee.users_details.persons_info.f_last_name}"
+                if employee.users_details and employee.users_details.persons_info
+                else "No user information"
+            ),
             "position": employee.position,
-            "hire_date": f"{date.strftime(employee.hire_date, '%d-%m-%Y')}",
-            "phone": employee.employee_mobile_phone,
-            "photo": employee.photo,
+            "hire_date": f"{date.strftime(employee.hire_date, '%d-%m-%Y')}" if employee.hire_date else "No hire date",
+            "phone": employee.employee_mobile_phone or "No phone",
             "is_active": employee.is_active
         }
         for employee in employees
     ]
+
+@router.get('/{id_employee}')
+async def get_employee(id_employee: int, db: db_dependency):
+    query = select(Employee).options(
+        joinedload(Employee.users_details).joinedload(User.persons_info)
+    ).filter(Employee.id_employee == id_employee)
+    result = await db.execute(query)
+    employee = result.scalars().first()
+    
+    if not employee:
+        raise HTTPException(status_code=404, detail="Employee not found")
+
+    return {
+        "id": employee.id_employee,
+        "user": (
+            f"{employee.users_details.persons_info.first_name} {employee.users_details.persons_info.f_last_name}"
+            if employee.users_details and employee.users_details.persons_info
+            else "No user information"
+        ),
+        "position": employee.position,
+        "hire_date": f"{date.strftime(employee.hire_date, '%d-%m-%Y')}" if employee.hire_date else "No hire date",
+        "phone": employee.employee_mobile_phone or "No phone",
+        "is_active": employee.is_active
+    }
 
 
 @router.post('/')
@@ -60,7 +89,6 @@ async def create_employee(
     position: Annotated[str, Form()],
     hire_date: Annotated[date, Form()],
     employee_mobile_phone: Annotated[str, Form()],
-    # Archivo manejado como parámetro independiente
     photo: Annotated[UploadFile, File()],
     db: db_dependency
 ):
@@ -78,13 +106,12 @@ async def create_employee(
         # Leer el archivo como datos binarios
         photo_data = await photo.read()
 
-        # Crear el nuevo empleado
         new_employee = Employee(
             person=person,
             position=position,
             hire_date=hire_date,
             employee_mobile_phone=employee_mobile_phone,
-            photo=photo_data  # Guardar los datos binarios en la columna BYTEA
+            photo=photo_data 
         )
 
         db.add(new_employee)
@@ -102,7 +129,6 @@ async def create_employee(
                 "is_active": new_employee.is_active,
             }
         }
-        # return 0
     except Exception as e:
         await db.rollback()
         raise HTTPException(status_code=400, detail=str(e))
