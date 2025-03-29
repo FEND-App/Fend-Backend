@@ -3,10 +3,12 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, Annotated
 import models
 import models.city
+import uuid
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from models.persons import Person
 from models.residential_management import ResidentialManagement
+from models.resident import Resident
 from sqlalchemy.orm import joinedload
 from datetime import date, datetime
 
@@ -158,3 +160,41 @@ def update_management(id_management: int, data: ResidentialManagementUpdate, db:
         db.rollback()
         raise HTTPException(
             status_code=400, detail=f"Error al actualizar el management: {str(e)}")
+
+
+
+@router.post('/add_head_resident/')
+async def add_head_resident(data: ResidentCreate, db: Session = Depends(get_db)):
+    try:
+        existing_head = db.query(residents.Resident).filter(residents.Resident.resident_type == "Head", residents.Resident.resident_house == data.resident_house).first()
+
+        if existing_head:
+            raise HTTPException(status_code=400, detail="Ya existe un residente principal para esta residencia")
+
+        person_exists = db.query(persons.Person).filter(persons.Person.person == data.person).first()
+        if person_exists:
+            raise HTTPException(status_code=400, detail="Esta persona no esta registrada en el sistema")
+
+        qr_data = f"ID; {data.person}; House: {data.resident_house}"
+        qr = qrcode.make(qr_data)
+        buffer = BytesIO()
+        qr.save(buffer, format="PNG")
+        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+
+        new_resident = residents.Resident(
+            person=data.person,
+            resident_house=data.resident_house,
+            resident_type="Head",
+            is_active=True,
+            resident_qr=qr_code_base64,
+        )
+
+        db.add(new_resident)
+        db.commit()
+
+        return {"message": "Residente principal agregado con exito", "resident_qr": qr_code_base64}
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error interno del sistemA: {str(e)}")
