@@ -11,6 +11,7 @@ class PendingPaymentsCreate(BaseModel):
     is_active: bool
     residential_management: int
 
+
 class PaymentCalenderCreate(BaseModel):
     pendig_payment: int
     status: str

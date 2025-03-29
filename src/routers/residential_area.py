@@ -95,7 +95,11 @@ def create_residential_area(residential_area: ResidentialAreaCreate, db: db_depe
 
 
 @router.patch("/{id_residential_area}", status_code=200)
-def update_residential_area(id_residential_area: int, residential: ResidentialAreaPatch, db: db_dependency):
+def update_residential_area(
+    id_residential_area: int,
+    residential: ResidentialAreaPatch,
+    db: db_dependency
+):
     find_residential_area = db.query(ResidentialArea).filter(
         ResidentialArea.id_residential_area == id_residential_area).first()
 
@@ -106,7 +110,8 @@ def update_residential_area(id_residential_area: int, residential: ResidentialAr
 
     try:
         for key, value in update_data.items():
-            find_residential_area.__setattr__(key, value)
+            if value:
+                find_residential_area.__setattr__(key, value)
 
         db.commit()
         db.refresh(find_residential_area)
