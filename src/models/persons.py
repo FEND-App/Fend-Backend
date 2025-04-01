@@ -22,3 +22,5 @@ class Person(Base):
     managements = relationship(
         "ResidentialManagement", back_populates="person_details")
     info_user = relationship("User", back_populates="persons_info")
+    residents = relationship(
+        'Residents', back_populates='person_resident_info')

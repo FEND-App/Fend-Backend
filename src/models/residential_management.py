@@ -20,3 +20,6 @@ class ResidentialManagement(Base):
     residential_area = relationship(
         "ResidentialArea", back_populates="managements")
     person_details = relationship("Person", back_populates="managements")
+
+    reservation = relationship(
+        'Reservation', back_populates='residential_management')
