@@ -9,6 +9,9 @@ from routers import city
 from routers import residential_area
 from routers import residential_management
 from routers import employees
+from routers import pending_resident_request
+from routers import reservation
+from routers import news
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 
@@ -22,6 +25,12 @@ app.include_router(residential_management.router,
                    prefix="/residential_management")
 app.include_router(employees.router,
                    prefix="/employees")
+app.include_router(pending_resident_request.router,
+                   prefix="/pending_resident_request")
+app.include_router(reservation.router,
+                   prefix="/reservation")
+app.include_router(news.router,
+                   prefix="/news")
 
 models.Base.metadata.create_all(bind=engine)
 
