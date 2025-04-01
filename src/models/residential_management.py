@@ -23,3 +23,5 @@ class ResidentialManagement(Base):
 
     reservation = relationship(
         'Reservation', back_populates='residential_management')
+
+    news = relationship('News', back_populates='residential_management_info')
