@@ -54,6 +54,28 @@ def get_news(db: db_dependency):
 
     return response
 
+@router.get('/{id_new}')
+def get_new_by_id(id_new: int, db: db_dependency):
+    find_new = db.query(News).options(
+        joinedload(News.residential_management_info).joinedload(
+            ResidentialManagement.person_details)
+    ).filter(News.id_news == id_new).first()
+    
+    if not find_new:
+        raise HTTPException(status_code=404, detail="New not found")
+    
+    response = {
+        'id_news': find_new.id_news,
+        'title': find_new.title,
+        'content': find_new.content,
+        'publication_date': f"{date.strftime(find_new.publication_date, '%d-%m-%y')}",
+        'expiration_date': f"{date.strftime(find_new.expiration_date, '%d-%m-%y')}",
+        'residential_management': f"{find_new.residential_management_info.person_details.first_name} {find_new.residential_management_info.person_details.f_last_name}" if find_new.residential_management_info and find_new.residential_management_info.person_details else 'N/A',
+        'status': find_new.status
+    }
+    
+    return response
+
 
 @router.post('/')
 def create_new(data: NewCreate, db: db_dependency):
