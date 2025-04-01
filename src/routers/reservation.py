@@ -7,7 +7,7 @@ from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from sqlalchemy.orm import joinedload
 import models.persons
-from models.reservation import Reservation
+from models.reservation import Reservation, ReservationStatus
 from models.residential_management import ResidentialManagement
 from models.residents import Residents
 from datetime import date
@@ -53,3 +53,36 @@ def get_reservations(db: db_dependency):
     } for reservation in reservations]
 
     return response
+
+
+@router.patch('/{id_reservation}')
+def approve_reservation(id_reservation: int, status: ReservationStatus, updated_by: int, db: db_dependency):
+    find_reservation = db.query(Reservation).filter(
+        Reservation.id_reservation == id_reservation).first()
+
+    find_person = db.query(ResidentialManagement).filter(
+        ResidentialManagement.id_residential_management == updated_by).first()
+
+    if not find_reservation:
+        raise HTTPException(status_code=404, detail='Reservation not found')
+
+    if not find_person:
+        raise HTTPException(
+            status_code=404, detail='Residential Management not found')
+
+    try:
+        find_reservation.event_status = status
+        find_reservation.approved_by = updated_by
+
+        db.commit()
+        db.refresh(find_reservation)
+
+        return {
+            'id_reservation': find_reservation.id_reservation,
+            'event_status': find_reservation.event_status,
+            'message': 'Reservation status updated successfully'
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(
+            status_code=500, detail=f"An error occurred: {str(e)}")
