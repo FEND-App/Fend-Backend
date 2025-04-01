@@ -18,14 +18,28 @@ class Residents(Base):
 
     id_residents = Column(UUID(as_uuid=True),
                           primary_key=True, default=uuid.uuid4)
-    person_id = Column(Integer, ForeignKey(
-        "persons.id_person"), nullable=False)
-    resident_house_id = Column(String, ForeignKey(
-        "properties.property_number"), nullable=False)
+    person = Column(Integer, ForeignKey("persons.id_person"), nullable=False)
+    resident_house = Column(String, nullable=False)
     resident_type = Column(SQLAlchemyEnum(
         ResidentType, name='residentstypes'), nullable=False)
     is_active = Column(Boolean, default=True)
     resident_qr = Column(String, nullable=False)
 
-    person = relationship("persons", back_populates="residents")
-    resident_house = relationship("Properties", back_populates="residents")
+    # Relación con Person
+    person_resident_info = relationship("Person", back_populates="residents")
+
+    # Relación con PendingResidentRequest (como residente)
+    pending_reqs = relationship(
+        'PendingResidentRequest',
+        back_populates='residents_info',
+        foreign_keys='PendingResidentRequest.resident'  # Especifica la clave foránea
+    )
+
+    # Relación con PendingResidentRequest (como cabeza de familia)
+    pending_reqs_head = relationship(
+        'PendingResidentRequest',
+        back_populates='residents_head_info',
+        foreign_keys='PendingResidentRequest.head'  # Especifica la clave foránea
+    )
+
+    reservation = relationship('Reservation', back_populates='residents')
