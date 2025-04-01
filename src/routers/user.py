@@ -10,13 +10,13 @@ import hashlib
 import secrets
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-
 app = FastAPI()
 router = APIRouter()
 
 security = HTTPBearer()
 
 CLERK_WEBHOOK_SECRET = os.getenv("CLERK_WEBHOOK_SECRET")
+
 
 def get_db():
     db = SessionLocal()
@@ -25,67 +25,71 @@ def get_db():
     finally:
         db.close()
 
-async def verify_clerk_webhook(request: Request, secret: str):#Funcion para verificar la firma del webhook
-    signature_header = request.headers.get("svix-signature", "")#Obtenemos la firma del header
+
+async def verify_clerk_webhook(request: Request, secret: str):
+    # Function to verify the webhook signature
+    signature_header = request.headers.get("svix-signature", "")
     if not signature_header:
-        raise HTTPException(status_code=400, detail="Falta la firma en el header")
+        raise HTTPException(
+            status_code=400, detail="Missing signature in the header")
 
-        try:
-            parts = signature_header.split(",")
-            timestamp = parts[0].split("=")[1]
-            signature = parts[1].split("=")[1]
+    try:
+        parts = signature_header.split(",")
+        timestamp = parts[0].split("=")[1]
+        signature = parts[1].split("=")[1]
 
-            payload = await request.body()
-            signed_payload = f"{timestamp}.{payload.decode()}"
+        payload = await request.body()
+        signed_payload = f"{timestamp}.{payload.decode()}"
 
-            expected_signature = hmac.new(
-                secret.encode(),
-                signed_payload.encode(),
-                hashlib.sha256
-            ).hexdigest()
+        expected_signature = hmac.new(
+            secret.encode(),
+            signed_payload.encode(),
+            hashlib.sha256
+        ).hexdigest()
 
         if not hmac.compare_digest(signature, expected_signature):
-            raise HTTPException(status_code=400, detail="Firma invalida")
+            raise HTTPException(status_code=400, detail="Invalid signature")
 
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error al verificar la firma: {e}")
-
+        raise HTTPException(
+            status_code=400, detail=f"Error verifying signature: {e}")
 
 
 @router.post('/create_user_clerk_webhook/')
-async def create_user_clerk_webhook(request: request, db: Session = Depends(get_db)):
+async def create_user_clerk_webhook(request: Request, db: Session = Depends(get_db)):
     try:
         payload = await request.json()
 
         await verify_clerk_webhook(request, CLERK_WEBHOOK_SECRET)
 
         if "data" not in payload or "type" not in payload:
-            raise HTTPException(status_code=400, detail="Webhook invalido en el payload, hace falta informacion")
+            raise HTTPException(
+                status_code=400, detail="Invalid webhook payload, missing information")
 
         if payload["type"] != "user.created":
-            return {"message": "Evento no es de tipo user.created, asi que el sistema lo ignoro"}
+            return {"message": "Event is not of type user.created, ignored by the system"}
 
         user_data = payload["data"]
 
-        existing_user = db.query(users.User).filter(users.User.id_user == user_data["id_user"]).first()
-            if existing_user:
-                raise HTTPException(status_code=400, detail="Usuario ya existe")
+        existing_user = db.query(users.User).filter(
+            users.User.id_user == user_data["id_user"]).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User already exists")
 
         new_user = users.User(
-            id_user=user_data["id_user"], #En teoria clerk devuelve el id
+            id_user=user_data["id_user"],  # Clerk should return the ID
             username=user_data["username"],
-            #password=user_data["clerk_password"], ya lo maneja clerk
             is_active=True
         )
 
         db.add(new_user)
         db.commit()
 
-
-
-        existing_person = db.query(persons.Person).filter(persons.Person.id_person == user_data["id_person"]).first()
+        existing_person = db.query(persons.Person).filter(
+            persons.Person.id_person == user_data["id_person"]).first()
         if existing_person:
-            raise HTTPException(status_code=400, detail="Persona ya existe")
+            raise HTTPException(
+                status_code=400, detail="Person already exists")
 
         attributes = user_data.get("attributes", {})
         new_person = persons.Person(
@@ -105,10 +109,9 @@ async def create_user_clerk_webhook(request: request, db: Session = Depends(get_
         db.add(new_person)
         db.commit()
 
-
-        return {"message": "Usuario y persona creados con exito"}
+        return {"message": "User and person created successfully"}
 
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error interno {e}")
+        raise HTTPException(status_code=500, detail=f"Internal error: {e}")

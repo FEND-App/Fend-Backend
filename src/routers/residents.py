@@ -6,9 +6,14 @@ import uuid
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from models.persons import Person
-from models.resident import Resident
+from models.residents import Residents
 from sqlalchemy.orm import joinedload
 from datetime import date, datetime
+import qrcode
+from io import BytesIO
+import base64
+
+from schemas.residents.new_resident import ResidentCreate
 
 app = FastAPI()
 router = APIRouter()
@@ -23,28 +28,41 @@ def get_db():
     finally:
         db.close()
 
+
 db_dependency = Annotated[Session, Depends(get_db)]
 
 
 @router.post('/add_resident/')
 async def add_resident(data: ResidentCreate, db: Session = Depends(get_db)):
     try:
-        head_resident = db.query(Resident).filter(residents.Resident.person == data.person, residents.Resident.resident_type == "Head").first()
+        head_resident = db.query(Residents).filter(
+            Residents.person == data.person,
+            Residents.resident_type == "Head"
+        ).first()
 
         if not head_resident:
-            raise HTTPException(status_code=403, detail="Solo el administrador del hogar puede aggregar nuevos residentes")
+            raise HTTPException(
+                status_code=403,
+                detail="Solo el administrador del hogar puede agregar nuevos residentes"
+            )
 
-        person_exists = db.query(persons.Person).filter(persons.Person.person == person).first()
-            if not person_exists:
-                raise HTTPException(status_code=400, detail="Esta persona no esta registrada en el sistema")
+        person_exists = db.query(Person).filter(
+            Person.id_person == data.person
+        ).first()
 
-        qr_data = f"ID; {data.person}; House: {data.resident_house}"
+        if not person_exists:
+            raise HTTPException(
+                status_code=400,
+                detail="Esta persona no está registrada en el sistema"
+            )
+
+        qr_data = f"ID: {data.person}; House: {data.resident_house}"
         qr = qrcode.make(qr_data)
         buffer = BytesIO()
         qr.save(buffer, format="PNG")
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-        new_resident = residents.Resident(
+        new_resident = Residents(
             person=data.person,
             resident_house=data.resident_house,
             resident_type="Occupant",
@@ -55,9 +73,15 @@ async def add_resident(data: ResidentCreate, db: Session = Depends(get_db)):
         db.add(new_resident)
         db.commit()
 
-        return {"message": "Residente principal agregado con exito", "resident_qr": qr_code_base64}
+        return {
+            "message": "Residente agregado con éxito",
+            "resident_qr": qr_code_base64
+        }
 
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error interno del sistemA: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error interno del sistema: {str(e)}"
+        )

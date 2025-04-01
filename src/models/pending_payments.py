@@ -2,6 +2,7 @@ from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 
+
 class PendingPayment(Base):
     __tablename__ = "pending_payments"
 
@@ -11,9 +12,11 @@ class PendingPayment(Base):
     generation_date = Column(DateTime, nullable=False)
     payment_date = Column(DateTime, nullable=False)
     is_active = Column(Boolean, nullable=True, default=True)
-    residential_management = Column(Integer, ForeignKey("residential_management.id_residential_management"), nullable=False)
+    residential_management = Column(Integer, ForeignKey(
+        "residential_management.id_residential_management"), nullable=False)
 
     # Relaciones
     residential_management = relationship(
         "ResidentialManagement", back_populates="pending_payment")
-        payment_calender = relationship("PaymentCalender", back_populates="pending_payment")
+    payment_calender = relationship(
+        "PaymentCalender", back_populates="pending_payment")

@@ -1,22 +1,27 @@
+import base64
+from io import BytesIO
 from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Annotated
 import models
+from models import persons
 import models.city
 import uuid
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from models.persons import Person
 from models.residential_management import ResidentialManagement
-from models.resident import Resident
+from models.residents import Residents
 from sqlalchemy.orm import joinedload
 from datetime import date, datetime
+import qrcode
 
 from schemas.residential_management.residential_management import (
     ResidentialManagementCreate,
     ResidentialManagementUpdate,
     ResidentialManagementResponse,
 )
+from schemas.residents.new_resident import ResidentCreate
 
 app = FastAPI()
 router = APIRouter()
@@ -162,18 +167,21 @@ def update_management(id_management: int, data: ResidentialManagementUpdate, db:
             status_code=400, detail=f"Error al actualizar el management: {str(e)}")
 
 
-
 @router.post('/add_head_resident/')
 async def add_head_resident(data: ResidentCreate, db: Session = Depends(get_db)):
     try:
-        existing_head = db.query(residents.Resident).filter(residents.Resident.resident_type == "Head", residents.Resident.resident_house == data.resident_house).first()
+        existing_head = db.query(Residents).filter(
+            Residents.resident_type == "Head", Residents.resident_house == data.resident_house).first()
 
         if existing_head:
-            raise HTTPException(status_code=400, detail="Ya existe un residente principal para esta residencia")
+            raise HTTPException(
+                status_code=400, detail="Ya existe un residente principal para esta residencia")
 
-        person_exists = db.query(persons.Person).filter(persons.Person.person == data.person).first()
+        person_exists = db.query(persons.Person).filter(
+            persons.Person.person == data.person).first()
         if person_exists:
-            raise HTTPException(status_code=400, detail="Esta persona no esta registrada en el sistema")
+            raise HTTPException(
+                status_code=400, detail="Esta persona no esta registrada en el sistema")
 
         qr_data = f"ID; {data.person}; House: {data.resident_house}"
         qr = qrcode.make(qr_data)
@@ -181,7 +189,7 @@ async def add_head_resident(data: ResidentCreate, db: Session = Depends(get_db))
         qr.save(buffer, format="PNG")
         qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
 
-        new_resident = residents.Resident(
+        new_resident = Residents(
             person=data.person,
             resident_house=data.resident_house,
             resident_type="Head",
@@ -197,4 +205,5 @@ async def add_head_resident(data: ResidentCreate, db: Session = Depends(get_db))
     except HTTPException as e:
         raise e
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error interno del sistemA: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error interno del sistemA: {str(e)}")
