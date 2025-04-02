@@ -12,6 +12,7 @@ from routers import employees
 from routers import pending_resident_request
 from routers import reservation
 from routers import news
+from routers import payment_calender
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 
@@ -31,6 +32,8 @@ app.include_router(reservation.router,
                    prefix="/reservation")
 app.include_router(news.router,
                    prefix="/news")
+app.include_router(payment_calender.router,
+                   prefix="/payment_calender")
 
 models.Base.metadata.create_all(bind=engine)
 
