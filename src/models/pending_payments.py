@@ -6,7 +6,7 @@ from database import Base
 class PendingPayment(Base):
     __tablename__ = "pending_payments"
 
-    id_pending_payment = Column(Integer, primary_key=True, index=True)
+    id_pending_payments = Column(Integer, primary_key=True, index=True)
     payment_description = Column(String, nullable=False)
     amount = Column(Integer, nullable=False)
     generation_date = Column(DateTime, nullable=False)
@@ -16,7 +16,7 @@ class PendingPayment(Base):
         "residential_management.id_residential_management"), nullable=False)
 
     # Relaciones
-    residential_management = relationship(
-        "ResidentialManagement", back_populates="pending_payment")
-    payment_calender = relationship(
-        "PaymentCalender", back_populates="pending_payment")
+    residential_management_info = relationship(
+        "ResidentialManagement", back_populates="pending_payments")
+    payment_calender_info = relationship(
+        "PaymentCalender", back_populates="pending_payment_info")

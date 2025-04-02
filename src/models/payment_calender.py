@@ -2,15 +2,21 @@ from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean
 from sqlalchemy.orm import relationship
 from database import Base
 
-class payment_calender(Base):
-    __tablename__ = "payment_calender"
 
-    id_payment_calender = Column(Integer, primary_key=True, index=True)
-    residents = Column(Integer, ForeignKey("residents.id_residents"), nullable=False)
-    pending_payment = Column(Integer, ForeignKey("pending_payment.id_pending_payment"), nullable=False)
+class PaymentCalender(Base):
+    __tablename__ = "payment_calendar"
+
+    id_payment_calendar = Column(Integer, primary_key=True, index=True)
+    resident = Column(Integer, ForeignKey(
+        "residents.id_residents"), nullable=False)
+    pending_payments = Column(Integer, ForeignKey(
+        "pending_payments.id_pending_payments"), nullable=False)
     status = Column(Boolean, nullable=False)
 
     # Relaciones
-    resident = relationship(
-        "Residents", back_populates="payment_calender")
-    pending_payment = relationship("PendingPayment", back_populates="payment_calender", cascade="all, delete-orphan")
+    pending_payment_info = relationship(
+        "PendingPayment", back_populates="payment_calender_info", foreign_keys=[pending_payments]
+    )
+
+    resident_info = relationship(
+        "Residents", back_populates="payment_calender_info", foreign_keys=[resident])
