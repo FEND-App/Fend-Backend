@@ -16,7 +16,7 @@ class ResidentType(str, Enum):
 class Residents(Base):
     __tablename__ = "residents"
 
-    id_residents = Column(UUID(as_uuid=True),
+    id_residents = Column(Integer,
                           primary_key=True, default=uuid.uuid4)
     person = Column(Integer, ForeignKey("persons.id_person"), nullable=False)
     resident_house = Column(String, nullable=False)
