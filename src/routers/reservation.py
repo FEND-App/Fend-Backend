@@ -11,6 +11,7 @@ from models.reservation import Reservation, ReservationStatus
 from models.residential_management import ResidentialManagement
 from models.residents import Residents
 from datetime import date
+from schemas.general_app.events import CreateResrvation
 
 app = FastAPI()
 router = APIRouter()
@@ -86,3 +87,61 @@ def approve_reservation(id_reservation: int, status: ReservationStatus, updated_
         db.rollback()
         raise HTTPException(
             status_code=500, detail=f"An error occurred: {str(e)}")
+
+
+
+@router.get('/social_areas/{id_residential_area}')
+async def list_social_areas(id_residential_area: int, db: Session = Depends(get_db)):
+    try:
+        areas = db.query(
+            models.SocialArea
+        ).join(
+            models.ResidentialSocialArea,
+            models.ResidentialSocialArea.social_area == models.SocialArea.id_social_area
+        ).filter(
+            models.ResidentialSocialArea.residential == id_residential_area
+        ).all()
+
+        return [
+            {
+                "id_social_area": area.id_social_area,
+                "social_area": area.social_area
+            } for area in areas
+        ]
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching areas: {str(e)}")
+
+
+@router.post('/create_Reservation/')
+async def create_reservation(data: CreateReservation, db: Session = Depends(get_db)):
+    try:
+        social_area = db.query(models.SocialArea).filter(
+            models.SocialArea.id_social_area == data.social_area_info
+        ).first()
+
+        if not social_area:
+            raise HTTPException(status_code=404, detail="Error: Social area not found")
+
+        reservation = models.Reservation(
+            id_resident=data.id_residents,
+            id_area=data.social_area,
+            event_date=data.event_date,
+            event_status="Pending",
+            created_at=datetime.now(),
+            notes=data.notes
+        )
+
+        db.add(reservation)
+        db.commit()
+        db.refresh(reservation)
+
+        return {
+            "message": "Reservation created successfully",
+            "reservation_id": reservation.id_reservation
+        }
+
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Error interno del sistema: {str(e)}")

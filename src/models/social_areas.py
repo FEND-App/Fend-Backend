@@ -13,3 +13,5 @@ class SocialArea(Base):
 
     reservation = relationship(
         'Reservation', back_populates='social_area_info')
+    residential_social_area = relationship(
+        'ResidentialSocialArea', back_populates='social_areas')
