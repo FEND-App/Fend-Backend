@@ -31,6 +31,8 @@ app.include_router(reservation.router,
                    prefix="/reservation")
 app.include_router(news.router,
                    prefix="/news")
+app.include.router(residents.router, prefix="/residents")
+app.include.router(user.router, prefix="/user")
 
 models.Base.metadata.create_all(bind=engine)
 
