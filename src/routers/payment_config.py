@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from models import PaymentCalender, PendingPayment
+from models.payment_calender import PaymentCalender
+from models.pending_payments import PendingPayment
 from schemas.residential_management.payments import PendingPaymentsCreate, PaymentCalenderCreate
 from database import SessionLocal
 

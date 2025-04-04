@@ -25,3 +25,6 @@ class ResidentialManagement(Base):
         'Reservation', back_populates='residential_management')
 
     news = relationship('News', back_populates='residential_management_info')
+
+    pending_payments = relationship(
+        "PendingPayment", back_populates="residential_management_info")
