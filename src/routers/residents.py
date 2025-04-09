@@ -8,9 +8,9 @@ from sqlalchemy.orm import Session
 from models.persons import Person
 from models.residents import Residents
 from models.visitor import Visitor
-from models.visitor_QR_code import VisitorQRCode
+from models.visitor_qr_codes import VisitorQRCode
 from sqlalchemy.orm import joinedload
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import qrcode
 from io import BytesIO
 import base64
@@ -92,8 +92,8 @@ async def add_resident(data: ResidentCreate, db: Session = Depends(get_db)):
 @router.post('/Visitor_registration/')
 async def Visitor_registration(data: NewVisitorRegistration, db: Session = Depends(get_db)):
     try:
-        resident = db.query(models.Residents).filter(
-            models.Residents.id_resident == data.resident_id
+        resident = db.query(Residents).filter(
+            Residents.id_residents == data.resident_id
         ).first()
 
         if not resident:
@@ -102,12 +102,12 @@ async def Visitor_registration(data: NewVisitorRegistration, db: Session = Depen
                 detail="Residente no registrado en el sistema"
             )
 
-        new_visitor = models.Visitor(
+        new_visitor = Visitor(
             id_document=data.id_document,
             first_name=data.first_name,
             second_name=data.second_name,
-            first_lastname=data.first_last_name,
-            second_lastname=data.second_last_name,
+            first_lastname=data.first_lastname,
+            second_lastname=data.second_lastname,
             phone_number=data.phone_number,
             is_adult=data.is_adult,
             picture=data.picture        
@@ -117,8 +117,8 @@ async def Visitor_registration(data: NewVisitorRegistration, db: Session = Depen
         db.commit()
         db.refresh(new_visitor)
 
-        new_visitor_qr = models.VisitorQRCode(   #hay que modificar esta tabla en la ddbb y eliminar la columna QR_code, no es necesaria ya que se genera en el momento
-            resident=resident.id_resident,
+        new_visitor_qr = VisitorQRCode(   #hay que modificar esta tabla en la ddbb y eliminar la columna QR_code, no es necesaria ya que se genera en el momento
+            resident=resident.id_residents,
             visitor=new_visitor.id_visitor,
             generation_date=datetime.now(),
             expiration_date=datetime.now() + timedelta(days=15),
@@ -130,7 +130,7 @@ async def Visitor_registration(data: NewVisitorRegistration, db: Session = Depen
         db.refresh(new_visitor_qr)
 
 
-        qr_data = f"QR_ID: {new_visitor_qr.qr_id}; | ID: {new_visitor.id_visitor}; | Resident: {resident.id_resident}"
+        qr_data = f"QR_ID: {new_visitor_qr.qr_id}; | ID: {new_visitor.id_visitor}; | Resident: {resident.id_residents}"
         qr = qrcode.make(qr_data)
         buffer = BytesIO()
         qr.save(buffer, format="PNG")

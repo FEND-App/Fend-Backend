@@ -23,7 +23,7 @@ class Reservation(Base):
     event_date = Column(DateTime, nullable=False)
     event_status = Column(SQLAlchemyEnum(
         ReservationStatus, names='reservationstatus'))
-    approved_by = Column(Integer, ForeignKey(t
+    approved_by = Column(Integer, ForeignKey(
         'residential_management.id_residential_management'), nullable=True)#hay que modificar esta columna en la DDBB para que si pueda ser null y que una ves sea aprrovada o denegada pase a tener el valor del managemen
     created_at = Column(DateTime, default=datetime.now())
     notes = Column(String(500), nullable=True)

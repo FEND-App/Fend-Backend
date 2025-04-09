@@ -1,4 +1,4 @@
-from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean, LargeBinary
 from database import Base
 from sqlalchemy.orm import relationship
 
@@ -9,12 +9,12 @@ class Visitor(Base):
     id_document = Column(String, nullable=False)
     first_name = Column(String, nullable=False)
     second_name = Column(String, nullable=True)
-    last_name = Column(String, nullable=False)
-    second_last_name = Column(String, nullable=True)
+    first_lastname = Column(String, nullable=False)
+    second_lastname = Column(String, nullable=True)
     phone_number = Column(String, nullable=False)
     is_adult = Column(Boolean, nullable=False, default=False)
-    Picture = Column(LargeBinary, nullable=True)
+    picture = Column(LargeBinary, nullable=True)
 
 
-    qr_codes = relationship("visitor_QR_codes", back_populates="visitor")
+    visitor_qr_codes = relationship("VisitorQRCode", back_populates="visitor_id")
 

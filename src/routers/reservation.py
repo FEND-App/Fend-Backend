@@ -10,8 +10,8 @@ import models.persons
 from models.reservation import Reservation, ReservationStatus
 from models.residential_management import ResidentialManagement
 from models.residents import Residents
-from datetime import date
-from schemas.general_app.events import CreateResrvation
+from datetime import datetime, date
+from schemas.general_app.events import CreateReservation
 
 app = FastAPI()
 router = APIRouter()

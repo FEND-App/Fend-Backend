@@ -1,8 +1,6 @@
-from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean, Enum as SQLAlchemyEnum
+from sqlalchemy import Integer, String, Column
 from sqlalchemy.orm import relationship
 from database import Base
-from enum import Enum
-from datetime import datetime
 
 
 class SocialArea(Base):
@@ -14,4 +12,4 @@ class SocialArea(Base):
     reservation = relationship(
         'Reservation', back_populates='social_area_info')
     residential_social_area = relationship(
-        'ResidentialSocialArea', back_populates='social_areas')
+       'ResidentialSocialArea', back_populates='social_areas')

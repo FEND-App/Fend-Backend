@@ -17,3 +17,5 @@ class ResidentialArea(Base):
     # Relaciones
     managements = relationship(
         "ResidentialManagement", back_populates="residential_area")
+    residential_social_area = relationship(
+        "ResidentialSocialArea", back_populates="residential_area")

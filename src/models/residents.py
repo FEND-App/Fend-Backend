@@ -45,4 +45,6 @@ class Residents(Base):
     reservation = relationship('Reservation', back_populates='residents')
 
     payment_calender_info = relationship(
-        "PaymentCalender", back_populates="resident_info")
+        "PaymentCalender", back_populates="resident_info") 
+    
+    visitor_qr_codes = relationship("VisitorQRCode", back_populates="resident_id")

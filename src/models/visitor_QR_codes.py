@@ -1,6 +1,7 @@
-from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean
+from sqlalchemy import Integer, String, DateTime, ForeignKey, Column, Boolean, Enum as SQLAlchemyEnum
 from database import Base
 from sqlalchemy.orm import relationship
+from enum import Enum
 
 class StatusQR(str, Enum):
     Active = "Active"
@@ -9,7 +10,7 @@ class StatusQR(str, Enum):
     Revoked = "Revoked"
 
 class VisitorQRCode(Base):
-    __tablename__ = "visitor_QR_codes"
+    __tablename__ = "visitor_qr_codes"
 
     qr_id = Column(Integer, primary_key=True, index=True)
     resident = Column(Integer, ForeignKey("residents.id_residents"), nullable=False)
@@ -21,5 +22,5 @@ class VisitorQRCode(Base):
         StatusQR, name='StatusQR'), nullable=False)
 
     # Relaciones
-    resident = relationship("Residents", back_populates="qr_codes")
-    visitor = relationship("Visitor", back_populates="qr_codes")
+    resident_id = relationship("Residents", back_populates="visitor_qr_codes")
+    visitor_id = relationship("Visitor", back_populates="visitor_qr_codes")

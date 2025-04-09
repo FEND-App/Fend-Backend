@@ -2,7 +2,7 @@ from fastapi import FastAPI, APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Annotated
 import models
-from models.news import News
+from models.news import News 
 from models.persons import Person
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
@@ -14,6 +14,7 @@ from models.residents import Residents
 from datetime import date
 
 from schemas.news.create_new import NewCreate
+from schemas.news.news import NewsUpdate
 
 app = FastAPI()
 router = APIRouter()
@@ -119,28 +120,12 @@ def create_new(data: NewCreate, db: db_dependency):
             'message': str(e)
         }
 
-@router.get('/News/{id_news}')
-async def get_news_by_id(id_news: int, db: Session = Depends(get_db)):
-    try:
-        news = db.query(models.News).filter(
-            models.News.id_news == id_news).first()
-
-        if not news:
-            raise HTTPException(status_code=404, detail="Noticia no encontrada")
-
-        return news
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(
-            status_code=500, detail=f"Error interno del sistema: {str(e)}")
-
 
 @router.put('/News/{id_news}')
 async def update_news(id_news: int, data: NewsUpdate, db: Session = Depends(get_db)):
     try:
-        news = db.query(models.News).filter(
-            models.News.id_news == id_news).first()
+        news = db.query(News).filter(
+            News.id_news == id_news).first()
 
         if not news:
             raise HTTPException(status_code=404, detail="Noticia no encontrada")
@@ -168,8 +153,8 @@ async def update_news(id_news: int, data: NewsUpdate, db: Session = Depends(get_
 @router.delete('/News/{id_news}')
 async def delete_news(id_news: int, db: Session = Depends(get_db)):
     try:
-        news = db.query(models.News).filter(
-            models.News.id_news == id_news).first()
+        news = db.query(News).filter(
+            News.id_news == id_news).first()
 
         if not news:
             raise HTTPException(status_code=404, detail="Noticia no encontrada")
