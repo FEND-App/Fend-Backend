@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional, Annotated
+import uvicorn
 import models
 from models.users import User
 from routers import persons
@@ -64,3 +65,6 @@ def root():
 def get_users(db: db_dependency):
     users = db.query(User.id_user, User.username, User.is_active).all()
     return [{"id_user": User.id, "name": User.username, "Active": User.is_active} for User in users]
+
+if __name__== "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
