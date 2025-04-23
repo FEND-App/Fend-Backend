@@ -1,0 +1,17 @@
+fastapi
+pydantic
+typing
+sqlalchemy
+uvicorn
+python-multipart
+pydantic[email]
+asyncpg
+dotenv
+psycopg2-binary
+alembic
+aiohttp
+msal
+qrcode[pil]
+requests
+requests-oauthlib
+asyncpg
