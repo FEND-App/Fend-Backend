@@ -131,14 +131,15 @@ async def Visitor_registration(data: NewVisitorRegistration, db: Session = Depen
 
 
         qr_data = f"QR_ID: {new_visitor_qr.qr_id}; | ID: {new_visitor.id_visitor}; | Resident: {resident.id_residents}"
-        qr = qrcode.make(qr_data)
-        buffer = BytesIO()
-        qr.save(buffer, format="PNG")
-        qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
+        # qr = qrcode.make(qr_data)
+        # buffer = BytesIO()
+        # qr.save(buffer, format="PNG")
+        # qr_code_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
  
         return {
             "message": "Visitante registrado con éxito",
-            "visitor_qr": qr_code_base64,
+            # "visitor_qr": qr_code_base64,
+            "visitor_qr": qr_data,
             "visitor_id": new_visitor.id_visitor #retorna este valor por si la camara del celular del guardia se arruino que solo ingrese el id y que reciba la data
         }
 
