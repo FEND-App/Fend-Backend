@@ -93,7 +93,7 @@ async def add_resident(data: ResidentCreate, db: Session = Depends(get_db)):
 async def Visitor_registration(data: NewVisitorRegistration, db: Session = Depends(get_db)):
     try:
         resident = db.query(Residents).filter(
-            Residents.id_residents == data.resident_id
+            Residents.clerk_id == data.resident_id
         ).first()
 
         if not resident:
