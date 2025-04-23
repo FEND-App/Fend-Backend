@@ -16,6 +16,7 @@ from routers import news
 from routers import payment_calender
 from routers import residents
 from routers import user
+from routers import webhooks
 from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 
@@ -41,6 +42,7 @@ app.include_router(payment_calender.router,
                    prefix="/payment_calender")
 app.include_router(reservation.router, prefix="/reservation")
 app.include_router(news.router, prefix="/news")
+app.include_router(webhooks.router, prefix="/webhooks")
 
 models.Base.metadata.create_all(bind=engine)
 

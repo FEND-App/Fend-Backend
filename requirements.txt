@@ -17,3 +17,4 @@ requests
 requests-oauthlib
 asyncpg
 clerk-backend-api
+svix
