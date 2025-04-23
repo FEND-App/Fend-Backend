@@ -18,5 +18,5 @@ class NewVisitorRegistration(BaseModel):
     phone_number: str
     is_adult: bool
     picture: Optional[bytes] = None
-    resident_id: int
+    resident_id: str
     StatuQR: StatusQR = StatusQR.Active
