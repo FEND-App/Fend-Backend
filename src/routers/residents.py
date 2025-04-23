@@ -7,6 +7,7 @@ from database import SessionLocal, engine
 from sqlalchemy.orm import Session
 from models.persons import Person
 from models.residents import Residents
+from models.users import User
 from models.visitor import Visitor
 from models.visitor_qr_codes import VisitorQRCode
 from sqlalchemy.orm import joinedload
@@ -92,8 +93,8 @@ async def add_resident(data: ResidentCreate, db: Session = Depends(get_db)):
 @router.post('/Visitor_registration/')
 async def Visitor_registration(data: NewVisitorRegistration, db: Session = Depends(get_db)):
     try:
-        resident = db.query(Residents).filter(
-            Residents.clerk_id == data.resident_id
+        resident = db.query(Residents).join(Person, Residents.person).join(Person, Person.info_user).filter(
+            User.clerk_id == data.auth_id
         ).first()
 
         if not resident:
